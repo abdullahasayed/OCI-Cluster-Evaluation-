@@ -79,6 +79,45 @@ The easiest way to think about ClusterMAX is:
 - Can the provider expose enough telemetry to debug real AI workloads?
 - Can real multi-node workloads reach expected efficiency?
 
+## How to Use This Playbook
+
+If you are new to these evaluations, use the phases as a dependency chain rather than a menu.
+
+1. Start with inventory and access checks.
+2. Move to synthetic subsystem checks such as storage and fabric.
+3. Only then run stress tests and real training workloads.
+
+That order matters because later failures are much easier to explain when the earlier evidence is already captured. If you skip straight to a distributed training job and it performs badly, you still will not know whether the root cause was storage, scheduler configuration, network topology, driver mismatch, or node health.
+
+As a rule:
+
+- early phases answer "is the cluster assembled correctly?"
+- middle phases answer "does each subsystem behave correctly in isolation?"
+- later phases answer "does the full stack behave correctly under real load?"
+
+## Core Tools and What They Tell You
+
+These are the main tools referenced throughout the playbook. A first-time operator should know what each one is isolating.
+
+- `nvidia-smi`: asks the NVIDIA driver what GPUs are present, their health, topology, thermals, and power state. It is the fastest sanity check for "does the OS even see the GPUs correctly?"
+- `dcgmi`: the CLI for NVIDIA DCGM. Use it for health checks, diagnostics, and background policy integration. It is more operationally useful than `nvidia-smi` when you care about drift, faults, and automation.
+- `fio`: a storage benchmark that generates controlled read/write patterns. It is useful because it isolates storage behavior from model code, dataloaders, and framework overhead.
+- `ib_write_bw` and `ib_write_latency`: low-level RDMA tests that measure link bandwidth and latency between peers. These help you determine whether a networking issue is in the fabric itself or higher in the stack.
+- `ibdiagnet`, `ibqueryerrors`, `perfquery`: InfiniBand fabric inspection tools. They help answer "is the fabric wired and configured correctly?" rather than "did my training job happen to run fast?"
+- `nccl-tests`: collective communication microbenchmarks for multi-GPU and multi-node communication. These are the standard way to validate whether all-reduce, all-gather, and similar collectives are behaving as expected.
+- `ncu`: NVIDIA Nsight Compute. It profiles individual GPU kernels, which is useful when distributed communication looks healthy but application kernels are still underperforming.
+- `gpu-burn` and `gpu-fryer`: sustained stress tools. They are not realistic workloads, but they are good at exposing instability that only appears under prolonged load.
+- `TorchTitan` and `Megatron-LM`: real distributed training stacks. These tell you whether the cluster is useful for actual AI work, not just synthetic benchmarks.
+
+## A Few Terms That Will Appear Repeatedly
+
+- **GPUDirect RDMA**: allows a network adapter to exchange data with GPU memory more directly, reducing CPU involvement and improving distributed training efficiency.
+- **NCCL**: NVIDIA's collective communication library used by PyTorch and many training frameworks for all-reduce and related operations.
+- **MFU**: model FLOP utilization. This is a rough measure of how much of the machine's theoretical compute capacity the workload is turning into useful training work.
+- **XID/SXID**: NVIDIA error codes reported by GPU and NVSwitch software stacks. Repeated XID/SXID events often indicate a real hardware, driver, or fabric stability problem.
+- **Passive health check**: a check that runs continuously in the background and looks for faults during normal cluster operation.
+- **Active health check**: a deliberate diagnostic or stress test run during setup, maintenance, or on idle nodes.
+
 ## Admin-Side Test Matrix
 
 The table below separates what we can test directly from the admin side versus what must be reviewed manually.
@@ -118,6 +157,16 @@ If your OCI deployment diverges from these assumptions, adjust the test steps bu
 
 Always capture evidence. ClusterMAX is as much about proving operational maturity as it is about running one benchmark.
 
+Purpose:
+
+- establish a clean baseline before any tuning or remediation begins
+- preserve enough context that later failures can be explained instead of guessed at
+
+Mechanism:
+
+- the baseline script captures static configuration and lightweight runtime state
+- it does not try to prove the cluster is fast; it proves the cluster is identifiable and inspectable
+
 ```bash
 mkdir -p artifacts
 ./scripts/clustermax_baseline_audit.sh artifacts/baseline
@@ -134,6 +183,14 @@ Expected evidence:
 ### Phase 1: Provisioning and Lifecycle Validation
 
 This phase maps to ClusterMAX lifecycle and part of orchestration.
+
+Purpose:
+
+- verify that the cluster was provisioned in a way a real team could actually operate
+
+Mechanism:
+
+- this phase is less about peak performance and more about whether access, user management, auditability, and day-1 usability were designed intentionally
 
 Questions to answer:
 
@@ -173,6 +230,14 @@ Failure signal:
 
 This phase maps to orchestration, reliability, monitoring, and security.
 
+Purpose:
+
+- confirm that each node is fundamentally healthy before scheduler, storage, and network layers are blamed for later issues
+
+Mechanism:
+
+- these checks ask the OS, driver stack, and low-level device tools what hardware exists and whether the expected supporting modules are loaded
+
 Run:
 
 ```bash
@@ -198,6 +263,14 @@ Pay special attention to ClusterMAX's repeated failure modes:
 ### Phase 3: SLURM Validation
 
 Use this phase if OCI is exposing SLURM.
+
+Purpose:
+
+- verify that the scheduler is not just installed, but usable as a shared AI/HPC environment
+
+Mechanism:
+
+- the commands below validate the control plane, node launch path, module system, and container integration before you spend time benchmarking
 
 ### Minimum checks
 
@@ -237,6 +310,11 @@ What to look for:
 - bandwidth is in family with expected values for the hardware and fabric
 - all_gather and all_to_all can be tested by swapping the binary name
 
+Interpretation note:
+
+- this is still a controlled microbenchmark, not a full training run
+- if this fails, fix scheduler placement, NCCL configuration, or network plumbing before attempting real models
+
 ### Optional SLURM stretch checks
 
 - `srun -h | grep container`
@@ -248,6 +326,14 @@ Do **not** inject failures on active production nodes.
 ### Phase 4: Kubernetes Validation
 
 Use this phase if OCI is exposing Kubernetes.
+
+Purpose:
+
+- verify that the Kubernetes control plane, GPU stack, storage integration, and repair mechanisms are ready for AI workloads
+
+Mechanism:
+
+- Kubernetes can hide low-level problems behind pod scheduling abstractions, so this phase first proves that the expected operators and storage primitives exist
 
 ### Minimum checks
 
@@ -278,6 +364,11 @@ Validate against ClusterMAX expectations:
 4. Run a small PyTorch distributed training smoke test.
 5. If inference is in scope, test a disaggregated serving stack such as `LLM-D` or an internal equivalent.
 
+Interpretation note:
+
+- keep the first Kubernetes tests intentionally boring
+- you want to prove GPU scheduling, volume attachment, and network policy behavior before adding distributed framework complexity
+
 Example commands:
 
 ```bash
@@ -290,6 +381,14 @@ kubectl logs -n gpu-operator -l app=nvidia-dcgm-exporter --tail=100
 ### Phase 5: Storage Validation
 
 This phase maps to the report's storage criteria and the site's expanded backup/DR expectations.
+
+Purpose:
+
+- determine whether the cluster can feed data fast enough and reliably enough for real training jobs
+
+Mechanism:
+
+- storage tests intentionally isolate the filesystem or block layer from model code so that poor throughput or latency does not get misdiagnosed as a framework issue
 
 ### Functional checks
 
@@ -315,6 +414,12 @@ ls -ld /home /data /lvol
 ./scripts/clustermax_fio_smoke.sh /home
 ```
 
+Interpretation note:
+
+- sequential results matter for large checkpoint and dataset movement
+- random IOPS and latency matter for metadata-heavy workloads, small-file access, and some dataloader patterns
+- the goal is not one magic number; the goal is to identify obviously weak tiers and unexpected variance
+
 What to record:
 
 - sequential read throughput
@@ -337,6 +442,15 @@ These are ClusterMAX-relevant but not fully exercised by a simple benchmark:
 ### Phase 6: WAN and Package-Install Smoke
 
 This phase is inspired by the report's "simple tests generally complete in under one minute" approach.
+
+Purpose:
+
+- simulate the first few things a new user usually does on a fresh cluster: install packages, pull artifacts, and download model assets
+
+Mechanism:
+
+- these are simple tests on purpose
+- they often reveal weak internet egress, DNS issues, proxies, local-disk bottlenecks, or package-cache misconfiguration faster than a complex benchmark will
 
 Run:
 
@@ -363,6 +477,16 @@ You should also add one or two **real-world** downloads relevant to your users:
 ### Phase 7: Fabric and Collective Validation
 
 This is one of the most important ClusterMAX dimensions.
+
+Purpose:
+
+- prove that the high-speed network and GPU collective stack are functioning correctly across nodes
+
+Mechanism:
+
+- the low-level RDMA tools test the fabric directly
+- NCCL tests then exercise the communication path that distributed training frameworks actually rely on
+- using both helps separate "fabric is broken" from "framework configuration is broken"
 
 ### Inventory and control-plane checks
 
@@ -393,6 +517,11 @@ Also test:
 - `ibqueryerrors`
 - `perfquery`
 
+Interpretation note:
+
+- if pairwise RDMA results are poor, do not trust higher-level NCCL results yet
+- if RDMA looks healthy but NCCL does not, focus on NCCL environment, topology, and process placement
+
 ### NCCL tests
 
 SLURM:
@@ -412,9 +541,22 @@ Success criteria:
 - bandwidth is directionally correct for the cluster design
 - repeated runs do not show severe jitter or stragglers
 
+Interpretation note:
+
+- "directionally correct" means consistent with the class of hardware and interconnect you intended to build
+- for first-pass bring-up, stability is more important than chasing the absolute best published number
+
 ### Phase 8: Monitoring Validation
 
 This phase maps directly to the live Monitoring Expectations page.
+
+Purpose:
+
+- ensure the cluster can explain bad behavior after the fact, not just exhibit it
+
+Mechanism:
+
+- monitoring should connect cluster symptoms to likely causes: GPU issues, storage stalls, scheduler contention, thermal limits, or network anomalies
 
 Confirm the presence of:
 
@@ -471,6 +613,11 @@ What this validates:
 - performance counters are not blocked by driver policy
 - a minimal CUDA workload can be profiled end to end
 
+Why this matters:
+
+- many clusters technically "support GPUs" but make kernel profiling impractical for normal users
+- when distributed communication is healthy but training throughput is still poor, `ncu` is one of the fastest ways to discover whether the bottleneck is in the kernels themselves
+
 Failure signal:
 
 - `ncu` is missing
@@ -481,6 +628,14 @@ Failure signal:
 ### Phase 9: Passive Health Checks
 
 This phase maps directly to ClusterMAX health-check expectations.
+
+Purpose:
+
+- catch faults during normal operation before users discover them by losing jobs
+
+Mechanism:
+
+- passive checks watch logs, counters, thermals, ECC state, and link health continuously, then alert or drain nodes when thresholds are crossed
 
 Minimum passive checks to implement:
 
@@ -512,6 +667,14 @@ nvidia-smi --query-gpu=temperature.gpu,power.draw,ecc.errors.uncorrected.volatil
 
 Run active checks during maintenance windows, on newly provisioned nodes, or on idle nodes.
 
+Purpose:
+
+- deliberately stress or diagnose hardware that looks healthy during idle observation but may fail under load
+
+Mechanism:
+
+- these tests inject load, exercise memory and interconnect paths, and surface issues that passive monitoring alone may not reveal
+
 Recommended sequence:
 
 1. `dcgmi diag -r 1`
@@ -539,6 +702,15 @@ Admin rule:
 
 ClusterMAX repeatedly uses "can a real workload reach expected performance?" as the deciding factor after basic setup checks.
 
+Purpose:
+
+- confirm that the cluster is useful for actual training or inference, not just good at synthetic tests
+
+Mechanism:
+
+- real workloads combine compute, communication, storage, scheduling, and runtime behavior all at once
+- this is where subsystem issues that looked acceptable in isolation often become obvious
+
 Recommended progression:
 
 1. single-node PyTorch smoke
@@ -563,6 +735,11 @@ If the cluster passes synthetic collectives but fails real training, suspect:
 - container/runtime mismatches
 - bad NCCL or MPI environment overrides
 - hidden node heterogeneity
+
+Interpretation note:
+
+- this is the stage where you should start correlating application metrics with the monitoring evidence gathered earlier
+- avoid changing many variables at once; use the baseline and subsystem evidence to narrow the search space
 
 ### Phase 12: Manual Review Bucket
 
