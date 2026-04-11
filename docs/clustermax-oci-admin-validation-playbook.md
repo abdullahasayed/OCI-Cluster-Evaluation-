@@ -425,6 +425,7 @@ Confirm the presence of:
 - job accounting for SLURM
 - low-level hardware telemetry
 - dmesg or system-log export into a searchable backend
+- Nsight Compute (`ncu`) availability for non-root users
 
 ClusterMAX-specific metrics to surface where possible:
 
@@ -445,7 +446,37 @@ dcgmi health -c
 nvidia-smi dmon -s pucvmet
 ```
 
-If you support kernel-level profiling for users, verify that `ncu` is available without requiring unsafe privilege escalation.
+### Nsight Compute Validation
+
+ClusterMAX explicitly calls out Nsight Compute availability for users without sudo on compute nodes. Treat this as a first-class check, not an optional nice-to-have.
+
+Quick presence check:
+
+```bash
+which ncu
+ncu --version
+ncu --list-chips | head
+```
+
+Practical smoke test:
+
+```bash
+./scripts/clustermax_ncu_smoke.sh
+```
+
+What this validates:
+
+- `ncu` exists in the user path
+- the current non-root user can launch Nsight Compute
+- performance counters are not blocked by driver policy
+- a minimal CUDA workload can be profiled end to end
+
+Failure signal:
+
+- `ncu` is missing
+- `ncu` only works with sudo
+- profiling fails with a performance-counter permission error
+- profiling works on the head node but not on compute nodes
 
 ### Phase 9: Passive Health Checks
 
@@ -580,7 +611,9 @@ Treat these as a separate checklist reviewed against internal documentation, con
 - Baseline audit: `scripts/clustermax_baseline_audit.sh`
 - WAN/package smoke: `scripts/clustermax_wan_smoke.sh`
 - Storage smoke: `scripts/clustermax_fio_smoke.sh`
+- Nsight Compute smoke: `scripts/clustermax_ncu_smoke.sh`
 - SLURM NCCL template: `examples/slurm/nccl_allreduce.sbatch`
+- Minimal CUDA sample for `ncu`: `examples/cuda/vector_add.cu`
 
 ## Practical Notes For OCI
 

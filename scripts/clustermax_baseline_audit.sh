@@ -143,6 +143,11 @@ if have nvcc; then
     capture nvcc_version nvcc --version
 fi
 
+if have ncu; then
+    capture ncu_version ncu --version
+    capture_shell ncu_list_chips 'ncu --list-chips | sed -n "1,40p"'
+fi
+
 if have mpirun; then
     capture mpi_version mpirun --version
 fi
@@ -158,6 +163,7 @@ summary 'NVIDIA GPUs visible via nvidia-smi' 'command -v nvidia-smi >/dev/null 2
 summary 'DCGM available' 'command -v dcgmi >/dev/null 2>&1'
 summary 'GPUDirect/RDMA kernel module visible' 'lsmod | grep -Eq "nvidia_peermem|nv_peer_mem"'
 summary 'NCCL config file present or intentionally omitted' 'test -f /etc/nccl.conf || true'
+summary 'Nsight Compute CLI present for current user' 'command -v ncu >/dev/null 2>&1 && ncu --version >/dev/null 2>&1'
 summary 'SLURM present' 'command -v sinfo >/dev/null 2>&1'
 summary 'Kubernetes present' 'command -v kubectl >/dev/null 2>&1'
 summary 'Shared mount hints present' 'mount | grep -Eq "/home|/data|/lvol"'
