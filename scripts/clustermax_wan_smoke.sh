@@ -5,6 +5,7 @@ set -euo pipefail
 WORKDIR="${1:-/tmp/clustermax-wan-$(date +%Y%m%d-%H%M%S)}"
 TORCH_SPEC="${TORCH_SPEC:-torch}"
 TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu124}"
+PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL:-https://pypi.org/simple}"
 REAL_WORLD_URL="${REAL_WORLD_URL:-https://huggingface.co/gpt2/resolve/main/config.json}"
 
 mkdir -p "${WORKDIR}"
@@ -25,6 +26,7 @@ timer() {
 echo "Working directory: ${WORKDIR}"
 echo "Torch spec       : ${TORCH_SPEC}"
 echo "Torch index      : ${TORCH_INDEX_URL}"
+echo "Extra index      : ${PIP_EXTRA_INDEX_URL}"
 echo "Real-world URL   : ${REAL_WORLD_URL}"
 echo
 
@@ -35,7 +37,7 @@ if command -v uv >/dev/null 2>&1; then
     # shellcheck disable=SC1091
     source "${WORKDIR}/uv-venv/bin/activate"
     timer "uv pip install ${TORCH_SPEC}" \
-        uv pip install "${TORCH_SPEC}" --index-url "${TORCH_INDEX_URL}"
+        uv pip install "${TORCH_SPEC}" --index-url "${TORCH_INDEX_URL}" --extra-index-url "${PIP_EXTRA_INDEX_URL}"
     deactivate
 else
     echo "uv not found; skipping uv timing"
@@ -46,7 +48,7 @@ if command -v python3 >/dev/null 2>&1; then
     rm -rf "${WORKDIR}/pip-downloads"
     mkdir -p "${WORKDIR}/pip-downloads"
     timer "pip download ${TORCH_SPEC}" \
-        python3 -m pip download --dest "${WORKDIR}/pip-downloads" --index-url "${TORCH_INDEX_URL}" "${TORCH_SPEC}"
+        python3 -m pip download --dest "${WORKDIR}/pip-downloads" --index-url "${TORCH_INDEX_URL}" --extra-index-url "${PIP_EXTRA_INDEX_URL}" "${TORCH_SPEC}"
 else
     echo "python3 not found; skipping pip timing"
     echo

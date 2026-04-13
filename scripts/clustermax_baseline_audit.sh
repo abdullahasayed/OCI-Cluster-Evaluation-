@@ -45,6 +45,10 @@ summary() {
     fi
 }
 
+note() {
+    printf '[INFO] %s\n' "$1" >>"${OUTDIR}/SUMMARY.txt"
+}
+
 printf 'ClusterMAX baseline audit\n' >"${OUTDIR}/SUMMARY.txt"
 printf 'Generated: %s\n\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" >>"${OUTDIR}/SUMMARY.txt"
 
@@ -92,8 +96,10 @@ fi
 
 if [[ -f /etc/nccl.conf ]]; then
     capture nccl_conf cat /etc/nccl.conf
+    note 'NCCL config file found at /etc/nccl.conf'
 else
     printf '/etc/nccl.conf not present\n' >"${OUTDIR}/nccl_conf.txt"
+    note 'NCCL config file not present at /etc/nccl.conf'
 fi
 
 capture_shell env_nccl 'env | sort | grep "^NCCL_" || true'
@@ -162,10 +168,9 @@ fi
 summary 'NVIDIA GPUs visible via nvidia-smi' 'command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L | grep -q "GPU "'
 summary 'DCGM available' 'command -v dcgmi >/dev/null 2>&1'
 summary 'GPUDirect/RDMA kernel module visible' 'lsmod | grep -Eq "nvidia_peermem|nv_peer_mem"'
-summary 'NCCL config file present or intentionally omitted' 'test -f /etc/nccl.conf || true'
 summary 'Nsight Compute CLI present for current user' 'command -v ncu >/dev/null 2>&1 && ncu --version >/dev/null 2>&1'
-summary 'SLURM present' 'command -v sinfo >/dev/null 2>&1'
-summary 'Kubernetes present' 'command -v kubectl >/dev/null 2>&1'
+summary 'SLURM control plane reachable' 'command -v sinfo >/dev/null 2>&1 && sinfo >/dev/null 2>&1'
+summary 'Kubernetes API reachable' 'command -v kubectl >/dev/null 2>&1 && kubectl get nodes --request-timeout=5s >/dev/null 2>&1'
 summary 'Shared mount hints present' 'mount | grep -Eq "/home|/data|/lvol"'
 
 printf '\nArtifacts written to %s\n' "${OUTDIR}" | tee -a "${OUTDIR}/SUMMARY.txt"

@@ -18,6 +18,11 @@ if ! command -v ncu >/dev/null 2>&1; then
     exit 1
 fi
 
+if [[ "${ALLOW_ROOT:-0}" != "1" && "${EUID:-$(id -u)}" -eq 0 ]]; then
+    echo "run this as a normal user; using root defeats the purpose of the non-sudo Nsight validation" >&2
+    exit 1
+fi
+
 if [[ ! -f "${SRC_FILE}" ]]; then
     echo "CUDA source file not found: ${SRC_FILE}" >&2
     exit 1

@@ -1,6 +1,16 @@
+#include <cuda_runtime.h>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+
+#define CUDA_CHECK(call)                                                          \
+    do {                                                                          \
+        cudaError_t err__ = (call);                                               \
+        if (err__ != cudaSuccess) {                                               \
+            std::fprintf(stderr, "%s failed: %s\n", #call, cudaGetErrorString(err__)); \
+            return 1;                                                             \
+        }                                                                         \
+    } while (0)
 
 __global__ void vector_add(const float* a, const float* b, float* c, int n) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -31,27 +41,22 @@ int main() {
     float* d_b = nullptr;
     float* d_c = nullptr;
 
-    if (cudaMalloc(&d_a, bytes) != cudaSuccess ||
-        cudaMalloc(&d_b, bytes) != cudaSuccess ||
-        cudaMalloc(&d_c, bytes) != cudaSuccess) {
-        std::fprintf(stderr, "device allocation failed\n");
-        return 1;
-    }
+    CUDA_CHECK(cudaMalloc(&d_a, bytes));
+    CUDA_CHECK(cudaMalloc(&d_b, bytes));
+    CUDA_CHECK(cudaMalloc(&d_c, bytes));
 
-    cudaMemcpy(d_a, h_a, bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, h_b, bytes, cudaMemcpyHostToDevice);
+    CUDA_CHECK(cudaMemcpy(d_a, h_a, bytes, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_b, h_b, bytes, cudaMemcpyHostToDevice));
 
     const int threads = 256;
     const int blocks = (n + threads - 1) / threads;
 
     vector_add<<<blocks, threads>>>(d_a, d_b, d_c, n);
 
-    if (cudaDeviceSynchronize() != cudaSuccess) {
-        std::fprintf(stderr, "kernel launch failed\n");
-        return 1;
-    }
+    CUDA_CHECK(cudaGetLastError());
+    CUDA_CHECK(cudaDeviceSynchronize());
 
-    cudaMemcpy(h_c, d_c, bytes, cudaMemcpyDeviceToHost);
+    CUDA_CHECK(cudaMemcpy(h_c, d_c, bytes, cudaMemcpyDeviceToHost));
 
     for (int i = 0; i < n; ++i) {
         float expected = h_a[i] + h_b[i];
@@ -63,9 +68,9 @@ int main() {
 
     std::puts("vector_add verification passed");
 
-    cudaFree(d_a);
-    cudaFree(d_b);
-    cudaFree(d_c);
+    CUDA_CHECK(cudaFree(d_a));
+    CUDA_CHECK(cudaFree(d_b));
+    CUDA_CHECK(cudaFree(d_c));
     std::free(h_a);
     std::free(h_b);
     std::free(h_c);

@@ -151,6 +151,13 @@ This playbook assumes:
 
 If your OCI deployment diverges from these assumptions, adjust the test steps but keep the evidence structure.
 
+Important OCI distinction:
+
+- a single GPU VM or a small GPU VM pool is a good **platform bring-up lab**
+- a two-or-more-node bare metal cluster network or compute cluster is the minimum **cluster validation lab**
+- on OCI, treat the distributed fabric, RDMA, and inter-node NCCL phases as meaningful only on the bare-metal cluster-network path
+- if you stay on VM workers, you can still learn the platform and run local GPU checks, but you should not draw strong conclusions from the inter-node networking sections
+
 ## Recommended Validation Phases
 
 ### Phase 0: Create an Evidence Folder
@@ -303,6 +310,8 @@ Template file:
 sbatch examples/slurm/nccl_allreduce.sbatch
 ```
 
+The provided template defaults to a 2-node job because that is the smallest configuration that can exercise the inter-node path. Override the node count at submit time when you expand the cluster.
+
 What to look for:
 
 - all_reduce succeeds
@@ -368,6 +377,7 @@ Interpretation note:
 
 - keep the first Kubernetes tests intentionally boring
 - you want to prove GPU scheduling, volume attachment, and network policy behavior before adding distributed framework complexity
+- if your OKE worker pool is VM-based, treat the first distributed runs as workflow tests, not final fabric verdicts
 
 Example commands:
 
@@ -487,6 +497,11 @@ Mechanism:
 - the low-level RDMA tools test the fabric directly
 - NCCL tests then exercise the communication path that distributed training frameworks actually rely on
 - using both helps separate "fabric is broken" from "framework configuration is broken"
+
+Prerequisite:
+
+- for OCI, this phase is only truly representative on a two-or-more-node bare-metal cluster network or compute cluster
+- if you are still on a single node or on VM GPU workers, you can run local checks and intra-node collectives, but do not treat the result as a real inter-node cluster verdict
 
 ### Inventory and control-plane checks
 
@@ -711,6 +726,11 @@ Mechanism:
 - real workloads combine compute, communication, storage, scheduling, and runtime behavior all at once
 - this is where subsystem issues that looked acceptable in isolation often become obvious
 
+OCI note:
+
+- on a VM-only starter environment, use this phase to validate job flow, images, scheduling, and observability
+- on a bare-metal multi-node environment, use this phase to validate the actual cluster architecture
+
 Recommended progression:
 
 1. single-node PyTorch smoke
@@ -796,6 +816,7 @@ Treat these as a separate checklist reviewed against internal documentation, con
 
 - OCI-specific network, storage, and image choices will affect the outcome more than any single benchmark command.
 - If your OCI cluster uses a private backend network and a separate public/login path, keep those paths separate in the evidence.
+- The `oci-hpc-oke` quick start is a good way to stand up the Kubernetes side, but a VM worker pool and a bare-metal RDMA worker pool serve different purposes. Use VM workers for cheap bring-up and use bare-metal worker pools for the fabric-heavy phases.
 - If you use Kubernetes, validate the GPU Operator and Network Operator versions early. ClusterMAX repeatedly treats stale operator versions as a real platform quality issue.
 - If you use SLURM, prioritize `topology.conf`, health checks, and container integration early. These are common differentiators between a cluster that is merely booted and a cluster that is actually usable.
 
