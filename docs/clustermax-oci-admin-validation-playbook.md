@@ -468,6 +468,12 @@ Run:
 ./scripts/clustermax_wan_smoke.sh
 ```
 
+Artifacting note:
+
+- the script writes a timestamped artifact directory under `artifacts/wan-smoke-*` by default
+- use `OUTDIR=artifacts/wan-smoke-run1 ./scripts/clustermax_wan_smoke.sh` when you want a stable path
+- the artifact bundle includes a summary, per-step logs and timing, proxy-aware config capture, curl headers/stats, and package download manifests
+
 What this checks:
 
 - PyTorch install/download timing through `uv` if available

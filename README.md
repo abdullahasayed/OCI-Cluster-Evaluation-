@@ -37,7 +37,7 @@ This is the safest command to run on a laptop, Mac, or CI runner because it does
 Run this on a Linux node in the target environment:
 
 ```bash
-make baseline OUTDIR=artifacts/baseline
+make baseline BASELINE_OUTDIR=artifacts/baseline
 ```
 
 This writes text artifacts under `artifacts/baseline/` so you can review what the cluster actually exposed at the time of the run.
@@ -47,7 +47,7 @@ This writes text artifacts under `artifacts/baseline/` so you can review what th
 WAN/package smoke:
 
 ```bash
-make wan-smoke WORKDIR=/tmp/clustermax-wan
+make wan-smoke WORKDIR=/tmp/clustermax-wan WAN_OUTDIR=artifacts/wan-smoke-run1
 ```
 
 Storage smoke:
@@ -82,6 +82,22 @@ sbatch examples/slurm/nccl_allreduce.sbatch
 - Use `make wan-smoke`, `make fio-smoke`, or `make ncu-smoke` only when you are on the right kind of Linux node and the required tools are installed.
 - Use `sbatch examples/slurm/nccl_allreduce.sbatch` only when you have a working multi-node SLURM environment.
 
+## WAN Smoke Artifacts
+
+The WAN/package smoke now keeps a proper evidence bundle instead of relying only on terminal output.
+
+Typical files in `WAN_OUTDIR`:
+
+- `SUMMARY.txt`: top-level run summary with pass/fail/skip lines
+- `steps.tsv`: per-step status, exit code, duration, and log path
+- `config.txt`: effective test inputs and proxy-related environment
+- `tool_versions.txt`: versions for `uv`, `python3`/`pip`, `curl`, and speedtest tools when present
+- `curl_headers.txt` and `curl_transfer_stats.txt`: HTTP response headers and curl timing/transfer metrics
+- `pip_downloads_manifest.tsv` plus checksum/file lists: what `pip download` actually fetched
+- `uv_freeze.txt`: installed package snapshot after a successful `uv` install
+
+This makes it much easier to compare runs, debug proxy or mirror behavior, and share one directory as evidence after a failed smoke.
+
 ## Prerequisites
 
 Minimum for repo checks:
@@ -113,3 +129,4 @@ Each runnable script exposes a help screen:
 - `artifacts/` is ignored in git because it is generated output.
 - The default `fio` settings are intentionally heavier than a tiny smoke test. For a quick confidence check, start with a smaller size such as `SIZE=4G` and a shorter runtime such as `RUNTIME=30`.
 - The WAN smoke intentionally exercises real download paths. If you are validating through a proxy or a private mirror, set `TORCH_INDEX_URL`, `PIP_EXTRA_INDEX_URL`, or `REAL_WORLD_URL` before running it.
+- Set `KEEP_REAL_WORLD_DOWNLOAD=0` if you want curl timing artifacts without retaining the downloaded payload itself.

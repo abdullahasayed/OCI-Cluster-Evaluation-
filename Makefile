@@ -1,6 +1,7 @@
 SHELL := /usr/bin/env bash
 
-OUTDIR ?= artifacts/baseline
+BASELINE_OUTDIR ?= artifacts/baseline
+WAN_OUTDIR ?=
 WORKDIR ?= /tmp/clustermax-wan
 TARGET_DIR ?= /data
 SIZE ?= 16G
@@ -15,11 +16,12 @@ NCU_WORKDIR ?= /tmp/clustermax-ncu
 help:
 	@printf '%s\n' \
 		'Available targets:' \
-		'  make test                             Run local repo checks.' \
-		'  make baseline OUTDIR=artifacts/run1   Capture baseline cluster evidence.' \
-		'  make wan-smoke WORKDIR=/tmp/wan       Run package install / WAN smoke.' \
-		'  make fio-smoke TARGET_DIR=/data       Run storage smoke on a mounted path.' \
-		'  make ncu-smoke NCU_WORKDIR=/tmp/ncu   Run the Nsight Compute smoke test.' \
+		'  make test                                               Run local repo checks.' \
+		'  make baseline BASELINE_OUTDIR=artifacts/run1            Capture baseline cluster evidence.' \
+		'  make wan-smoke WORKDIR=/tmp/wan WAN_OUTDIR=artifacts/wan-run1' \
+		'                                                          Run package install / WAN smoke.' \
+		'  make fio-smoke TARGET_DIR=/data                         Run storage smoke on a mounted path.' \
+		'  make ncu-smoke NCU_WORKDIR=/tmp/ncu                     Run the Nsight Compute smoke test.' \
 		'' \
 		'Notes:' \
 		'  - `make test` is safe to run from a laptop or CI runner.' \
@@ -30,10 +32,10 @@ test:
 	./scripts/run_repo_checks.sh
 
 baseline:
-	./scripts/clustermax_baseline_audit.sh "$(OUTDIR)"
+	./scripts/clustermax_baseline_audit.sh "$(BASELINE_OUTDIR)"
 
 wan-smoke:
-	./scripts/clustermax_wan_smoke.sh "$(WORKDIR)"
+	OUTDIR="$(WAN_OUTDIR)" ./scripts/clustermax_wan_smoke.sh "$(WORKDIR)"
 
 fio-smoke:
 	./scripts/clustermax_fio_smoke.sh "$(TARGET_DIR)" "$(SIZE)" "$(RUNTIME)"
