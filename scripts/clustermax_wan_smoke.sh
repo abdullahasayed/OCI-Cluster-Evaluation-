@@ -2,6 +2,29 @@
 
 set -euo pipefail
 
+usage() {
+    cat <<'EOF'
+Usage: clustermax_wan_smoke.sh [WORKDIR]
+
+Measure package install and real-world download timing from the current host.
+
+Arguments:
+  WORKDIR  Scratch directory for virtualenv and downloads.
+           Default: /tmp/clustermax-wan-YYYYMMDD-HHMMSS
+
+Environment:
+  TORCH_SPEC           Package spec to install or download. Default: torch
+  TORCH_INDEX_URL      Primary package index. Default: https://download.pytorch.org/whl/cu124
+  PIP_EXTRA_INDEX_URL  Extra package index. Default: https://pypi.org/simple
+  REAL_WORLD_URL       URL to fetch with curl. Default: https://huggingface.co/gpt2/resolve/main/config.json
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+fi
+
 WORKDIR="${1:-/tmp/clustermax-wan-$(date +%Y%m%d-%H%M%S)}"
 TORCH_SPEC="${TORCH_SPEC:-torch}"
 TORCH_INDEX_URL="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu124}"

@@ -2,6 +2,23 @@
 
 set -euo pipefail
 
+usage() {
+    cat <<'EOF'
+Usage: clustermax_ncu_smoke.sh [SRC_FILE] [WORKDIR]
+
+Build and profile a minimal CUDA sample with Nsight Compute.
+
+Arguments:
+  SRC_FILE  CUDA source to compile. Default: examples/cuda/vector_add.cu
+  WORKDIR   Build output directory. Default: /tmp/clustermax-ncu-YYYYMMDD-HHMMSS
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_FILE="${1:-${ROOT_DIR}/examples/cuda/vector_add.cu}"

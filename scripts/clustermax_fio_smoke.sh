@@ -2,6 +2,27 @@
 
 set -euo pipefail
 
+usage() {
+    cat <<'EOF'
+Usage: clustermax_fio_smoke.sh [TARGET_DIR] [SIZE] [RUNTIME]
+
+Run a storage smoke test with fio against TARGET_DIR.
+
+Arguments:
+  TARGET_DIR  Directory to test. Default: /data
+  SIZE        Test file size. Default: 16G
+  RUNTIME     Duration in seconds for each fio phase. Default: 60
+
+Example:
+  ./scripts/clustermax_fio_smoke.sh /data 4G 30
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+fi
+
 TARGET_DIR="${1:-/data}"
 SIZE="${2:-16G}"
 RUNTIME="${3:-60}"

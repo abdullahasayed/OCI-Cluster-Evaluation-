@@ -2,6 +2,23 @@
 
 set -euo pipefail
 
+usage() {
+    cat <<'EOF'
+Usage: clustermax_baseline_audit.sh [OUTDIR]
+
+Capture a lightweight baseline evidence bundle from the current host.
+
+Arguments:
+  OUTDIR  Output directory for the generated text artifacts.
+          Default: artifacts/clustermax-baseline-YYYYMMDD-HHMMSS
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+fi
+
 OUTDIR="${1:-artifacts/clustermax-baseline-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "${OUTDIR}"
 
