@@ -2,7 +2,7 @@
 
 ## State of the Repo: Looking Ahead
 
-In its current iteration, this project consists of a basic framework for benchmarking and evaluating OCI clusters in particular. Through iterative deployment of clusters varying in topolgoy and computer power the goal is to create a robust yet concise set of tools that allow for engineers to do tests in line with those done by industry analysts like SemiAnalysis.
+As of now this project consists of a basic framework for benchmarking and evaluating OCI clusters. Through iterative deployment of clusters varying in topolgoy and computer power the goal is to create a robust yet concise set of tools that allow for all GPU Cloud engineers to do tests in line with those done by industry analysts like SemiAnalysis.
 ________________________________________
 
 ## Why SemiAnalysis?
