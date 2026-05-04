@@ -1,6 +1,21 @@
-# OCI Cluster Validation Toolkit
+# Cluster Validation Toolkit: Who, what, where and why?  
 
-This repo packages a practical, admin-first validation flow for an OCI GPU cluster inspired by ClusterMAX-style checks. It is mainly a docs-and-scripts repo: the "tests" here are operational smoke tests and evidence-capture scripts, not application unit tests.
+## ~State of the Repo: Looking Ahead~
+
+In its current iteration, this project consists of a basic framework for benchmarking and evaluating OCI clusters in particular. Through iterative deployment of clusters varying in topolgoy and computer power the goal is to create a robust yet concise set of tools that allow for engineers to do tests in line with those done by industry analysts like SemiAnalysis.
+________________________________________
+
+## Why SemiAnalysis?
+
+SemiAnalysis' ratings and analysis of GPU compute offerings have become industry standard. Their ClusterMax 2.0 is their latest full survey of the industry. This report continues their now signature style of combining in-depth technical analysis with state-of-the-industry knowledge that, when leveraged with their seemingly endless stream of industry contacts, creates a highly effective, granular and insightful appraisal of GPU cloud offerings today. 
+
+The stregnth of these ratings has compelled even industry heavy hitters like Oracle to pay attention to what the folks at SemiAnalysis has to say. 
+
+Which leads to this project. Though some of SemiAnalysis' ClusterMAX rating system relies on anecdotal information from their surveys amongst other less accessible metrics, much of what justifies their conclusions is published very plainly (https://www.clustermax.ai/). 
+
+This, the purpose of this project is to develop a playbook that will implement many of the crucial tests relied upon by analysts like those at SemiAnalysis so that even a novice cloud engineer can quickly and effectively recieve robust feedback on the particulars of their cluster. This is not designed for granular optimization work by senior engineers, but even they will find utility in a suite of tools that quickly delivers feedback and highlights weaknesses based on metrics that are recognizable and pertinent to the whole industry. 
+
+## Execution and Details: 
 
 The detailed workflow lives in [docs/clustermax-oci-admin-validation-playbook.md](docs/clustermax-oci-admin-validation-playbook.md). The quick commands below are meant to make the repo easier to use from a fresh checkout.
 
