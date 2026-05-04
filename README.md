@@ -7,13 +7,13 @@ ________________________________________
 
 ## Why SemiAnalysis?
 
-SemiAnalysis' ratings and analysis of GPU compute offerings have become industry standard. Their ClusterMax 2.0 is their latest full survey of the industry. This report continues their now signature style of combining in-depth technical analysis with state-of-the-industry knowledge that, when leveraged with their seemingly endless stream of industry contacts, creates a highly effective, granular and insightful appraisal of GPU cloud offerings today. 
+SemiAnalysis' ratings and analysis of GPU compute offerings have become a widely recognized gold standard. Their ClusterMax 2.0 is their latest full survey of over 80 providers globally, ranging from major GPU cloud providers as well as those that don't usually make the headlines. ClusterMax 2.0  continues their now signature style of combining in-depth technical analysis with state-of-the-industry knowledge that, when leveraged with their seemingly endless stream of industry connects, creates a highly informative and technically insightful appraisal of GPU cloud offerings today. Their ratings of the value and reliabiity of GPU cloud providers have consistently been indirectly affirmed through corresponding movements in market value, relative demand and pricing stregnth.  
 
-The stregnth of these ratings has compelled even industry heavy hitters like Oracle to pay attention to what the folks at SemiAnalysis has to say. 
+The stregnth of these ratings has compelled industry heavy hitters like Oracle to pay attention to what the folks at SemiAnalysis have to say. 
 
-Which leads to this project. Though some of SemiAnalysis' ClusterMAX rating system relies on anecdotal information from their surveys amongst other less accessible metrics, much of what justifies their conclusions is published very plainly (https://www.clustermax.ai/). 
+Which leads to this project. Though some of SemiAnalysis' ClusterMAX rating system relies on anecdotal information from their surveys amongst other less accessible metrics, much of the criteria guiding their ratings is published very plainly (https://www.clustermax.ai/). 
 
-This, the purpose of this project is to develop a playbook that will implement many of the crucial tests relied upon by analysts like those at SemiAnalysis so that even a novice cloud engineer can quickly and effectively recieve robust feedback on the particulars of their cluster. This is not designed for granular optimization work by senior engineers, but even they will find utility in a suite of tools that quickly delivers feedback and highlights weaknesses based on metrics that are recognizable and pertinent to the whole industry. 
+The purpose of this project is to develop a playbook that will implement the crucial tests relied upon by analysts like those at SemiAnalysis. With this playbook, once completed, even a novice cloud engineer will quickly and effectively be able to recieve robust feedback on the particulars of their cluster. This is not designed for troubleshooting or granular optimization work by senior engineers, but even they will find utility in a suite of tools that quickly delivers feedback and highlights weaknesses narrowly focused on metrics that are recognizable and pertinent to the whole industry. 
 
 ## Execution and Details: 
 
