@@ -2,14 +2,14 @@
 
 ## State of the Repo: Looking Ahead
 
-As of now this project consists of a basic framework for benchmarking and evaluating OCI clusters. Through iterative deployment of clusters varying in topolgoy and computer power the goal is to create a robust yet concise set of tools that allow for all GPU Cloud engineers to do tests in line with those done by industry analysts like SemiAnalysis.
+As of now this project consists of a basic framework for benchmarking and evaluating OCI clusters. Through iterative deployment of clusters varying in topology and computer power the goal is to create a robust yet concise set of tools that allow for all GPU Cloud engineers to do tests in line with those done by industry analysts like SemiAnalysis.
 ________________________________________
 
 ## Why SemiAnalysis?
 
-SemiAnalysis' ratings and analysis of GPU compute offerings have become a widely recognized gold standard. Their ClusterMax 2.0 is their latest full survey of over 80 providers globally, ranging from major GPU cloud providers as well as those that don't usually make the headlines. ClusterMax 2.0  continues their now signature style of combining in-depth technical analysis with state-of-the-industry knowledge that, when leveraged with their seemingly endless stream of industry connects, creates a highly informative and technically insightful appraisal of GPU cloud offerings today. Their ratings of the value and reliabiity of GPU cloud providers have consistently been indirectly affirmed through corresponding movements in market value, relative demand and pricing stregnth.  
+SemiAnalysis' ratings and analysis of GPU compute offerings have become a widely recognized gold standard. Their ClusterMax 2.0 is their latest full survey of over 80 providers globally, ranging from major GPU cloud providers as well as those that don't usually make the headlines. ClusterMax 2.0  continues their now signature style of combining in-depth technical analysis with state-of-the-industry knowledge that, when leveraged with their seemingly endless stream of industry connects, creates a highly informative and technically insightful appraisal of GPU cloud offerings today. Their ratings of the value and reliabiity of GPU cloud providers have consistently been indirectly affirmed through corresponding movements in market value, relative demand and pricing stregnth (let this typo testify to the human writing these words).  
 
-The stregnth of these ratings has compelled industry heavy hitters like Oracle to pay attention to what the folks at SemiAnalysis have to say. 
+The strength of these ratings has compelled industry heavy hitters like Oracle to pay attention to what the folks at SemiAnalysis have to say. 
 
 Which leads to this project. Though some of SemiAnalysis' ClusterMAX rating system relies on anecdotal information from their surveys amongst other less accessible metrics, much of the criteria guiding their ratings is published very plainly (https://www.clustermax.ai/). 
 
