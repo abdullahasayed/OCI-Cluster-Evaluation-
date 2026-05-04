@@ -8,8 +8,8 @@ This summary is the first real-world stress test of the playbook described in th
 
 | Field | Value |
 |---|---|
-| Window | 2026-05-02 14:17 – 14:54 UTC |
-| Host | `oke-cese6fqqujq-nnibjvr7vnq-slshwjl7z3a-0` (single OKE worker, KVM-virtualised) |
+| Window | 2026-05 UTC |
+| Host | `oke-` (single OKE worker, KVM-virtualised) |
 | GPU | 1× NVIDIA A10, 23 028 MiB, driver 570.172.08 |
 | OS / kernel | Ubuntu 22.04.5 LTS, 5.15.0-1074-oracle |
 | CPU / RAM | 30 vCPU Intel Xeon Platinum 8358 / 235 GiB |
